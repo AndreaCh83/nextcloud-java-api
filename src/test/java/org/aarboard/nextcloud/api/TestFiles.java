@@ -23,6 +23,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import org.aarboard.nextcloud.api.webdav.ResourceProperties;
+import org.junit.Assert;
+import static org.junit.Assert.assertNotNull;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -37,6 +40,7 @@ public class TestFiles extends ATestClass {
     private final static String TEST1_FILE_CONTENT= "Content of Test 1 file";
     private final static String TEST2_FILE_CONTENT= "";
     private final static String TEST3_FILE_CONTENT= "Content of Test 3 file";
+    private final static String TEST4_FILE_CONTENT= "";
     
     @Test
     public void t25_testUploadFile() {
@@ -44,7 +48,7 @@ public class TestFiles extends ATestClass {
         if (_nc != null)
         {
             InputStream inputStream = new ByteArrayInputStream(TEST1_FILE_CONTENT.getBytes());
-            _nc.uploadFile(inputStream, TESTFILE1);
+            _nc.uploadFile(inputStream, TESTFILE1, false);
         }
     }
 
@@ -53,8 +57,8 @@ public class TestFiles extends ATestClass {
         System.out.println("uploadFile 0Bytes ("+TESTFILE2+")");
         if (_nc != null)
         {
-            InputStream inputStream = new ByteArrayInputStream(TEST2_FILE_CONTENT.getBytes());
-            _nc.uploadFile(inputStream, TESTFILE2);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(TEST2_FILE_CONTENT.getBytes());
+            _nc.uploadFile(inputStream, TESTFILE2, false);
         }
     }
 
@@ -64,7 +68,27 @@ public class TestFiles extends ATestClass {
         if (_nc != null)
         {
             InputStream inputStream = new ByteArrayInputStream(TEST3_FILE_CONTENT.getBytes());
-            _nc.uploadFile(inputStream, TESTFILE3);
+            _nc.uploadFile(inputStream, TESTFILE3, false);
+        }
+    }
+
+    @Test
+    public void t25_4_testUploadFile() {
+        System.out.println("uploadFile 0Bytes ("+TESTFILE4+")");
+        if (_nc != null)
+        {
+            InputStream inputStream = new ByteArrayInputStream(TEST4_FILE_CONTENT.getBytes());
+            _nc.uploadFile(inputStream, TESTFILE4, true);
+        }
+    }
+
+    @Test
+    public void t25_6_testUploadFile() {
+        System.out.println("uploadFile 26 Bytes ("+TESTFILE6+")");
+        if (_nc != null)
+        {
+            File srcFile= new File("src/test/resources/"+TESTFILE6);
+            _nc.uploadFile(srcFile, TESTFILE6);
         }
     }
 
@@ -91,7 +115,140 @@ public class TestFiles extends ATestClass {
             assertTrue(result);
         }
     }
+
+    @Test
+    public void t27_2_1_testFolderProperties() {
+        System.out.println("folderProperties all (/)");
+        if (_nc != null)
+        {
+            try
+            {
+                ResourceProperties props= _nc.getProperties("/", true);
+                Assert.assertNotNull("Properties returned", props);
+            }
+            catch (IOException ex)
+            {
+                assertFalse(ex.getMessage(), false);
+            }
+        }
+    }
     
+    @Test
+    public void t26_2_testFileExists4() {
+        System.out.println("fileExists4 ("+TESTFILE4+")");
+        if (_nc != null)
+        {
+            boolean result = _nc.fileExists(TESTFILE4);
+            assertTrue(result);
+        }
+    }
+
+    @Test
+    public void t27_1_testFileProperties() {
+        System.out.println("fileProperties basic ("+TESTFILE1+")");
+        if (_nc != null)
+        {
+            try
+            {
+                _nc.getProperties(TESTFILE1, false);
+                //assertTrue(result);
+            }
+            catch (IOException ex)
+            {
+                assertFalse(ex.getMessage(), false);
+            }
+        }
+    }
+
+    @Test
+    public void t27_2_testFileProperties() {
+        System.out.println("fileProperties basic ("+TESTFILE2+")");
+        if (_nc != null)
+        {
+            try
+            {
+                _nc.getProperties(TESTFILE2, false);
+                //assertTrue(result);
+            }
+            catch (IOException ex)
+            {
+                assertFalse(ex.getMessage(), false);
+            }
+        }
+    }
+
+    @Test
+    public void t27_2_1_testFileProperties() {
+        System.out.println("fileProperties all ("+TESTFILE2+")");
+        if (_nc != null)
+        {
+            try
+            {
+                _nc.getProperties(TESTFILE2, true);
+                //assertTrue(result);
+            }
+            catch (IOException ex)
+            {
+                assertFalse(ex.getMessage(), false);
+            }
+        }
+    }
+
+    @Test
+    public void t27_2_2_testFileProperties() {
+        System.out.println("fileProperties partial/all ("+TESTFILE2+")");
+        if (_nc != null)
+        {
+            try
+            {
+                ResourceProperties propsPartial= _nc.getProperties(TESTFILE2, false);
+                ResourceProperties propsFull= _nc.getProperties(TESTFILE2, true);
+                assertTrue("ETAG is not identic", propsPartial.getEtag().equals(propsFull.getEtag()));
+            }
+            catch (IOException ex)
+            {
+                assertFalse(ex.getMessage(), false);
+            }
+        }
+    }
+
+    @Test
+    public void t27_2_6_testFileProperties() {
+        System.out.println("fileProperties all ("+TESTFILE6+")");
+        if (_nc != null)
+        {
+            try
+            {
+                ResourceProperties props= _nc.getProperties(TESTFILE6, true);
+                assertNotNull("Retval is null", props);
+            }
+            catch (IOException ex)
+            {
+                assertFalse(ex.getMessage(), false);
+            }
+        }
+    }
+
+    
+    @Test
+    public void t27_99_testFileProperties() {
+        System.out.println("fileProperties not existing");
+        if (_nc != null)
+        {
+            try
+            {
+                _nc.getProperties(TESTFILE2+"-not-existing", false);
+                assertFalse("Resource should throw 404 error", true);
+            }
+            catch (Exception ex)
+            {
+                assertTrue("com.github.sardine.impl.SardineException: status code: 404, reason phrase: Unexpected response (404 Not Found)".equals(ex.getMessage()));
+            }
+        }
+    }
+
+
+
     @Test
     public void t28_3_testDowloadFile() throws IOException {
         System.out.println("downloadFile umlauts as InputStream ("+TESTFILE3+")");
@@ -113,7 +270,7 @@ public class TestFiles extends ATestClass {
         System.out.println("downloadFile umlauts as File ("+TESTFILE1+")");
         if (_nc != null)
         {
-            File of= new File(System.getProperty("java.io.tmpdir")+TESTFILE1);
+            File of= new File(System.getProperty("java.io.tmpdir")+File.separator+TESTFILE1);
             if (_nc.downloadFile(TESTFILE1, of.getParent()))
             {
                 assertTrue("Downloaded content size does not match", of.length() == TEST1_FILE_CONTENT.length());
@@ -130,6 +287,49 @@ public class TestFiles extends ATestClass {
     }
 
     @Test
+    public void t29_3_testDowloadFile4() throws IOException {
+        System.out.println("downloadFile  as File ("+TESTFILE4+")");
+        if (_nc != null)
+        {
+            File of= new File(System.getProperty("java.io.tmpdir")+File.separator+TESTFILE4);
+            if (_nc.downloadFile(TESTFILE4, of.getParent()))
+            {
+                assertTrue("Downloaded content size does not match", of.length() == 0);
+            }
+            else
+            {
+                assertTrue("Downloaded file failed", false);
+            }
+            if (of.exists())
+            {
+                of.delete();
+            }
+        }
+    }
+
+    @Test
+    public void t29_6_testDowloadFile6() throws IOException {
+        System.out.println("downloadFile  as File ("+TESTFILE6+")");
+        if (_nc != null)
+        {
+            File of= new File(System.getProperty("java.io.tmpdir")+File.separator+TESTFILE6);
+            if (_nc.downloadFile(TESTFILE6, of.getParent()))
+            {
+                File srcFile= new File("src/test/resources/"+TESTFILE6);
+                assertTrue("Downloaded content size does not match", of.length() == srcFile.length());
+            }
+            else
+            {
+                assertTrue("Downloaded file failed", false);
+            }
+            if (of.exists())
+            {
+                of.delete();
+            }
+        }
+    }
+    
+    @Test
     public void t99_testRemoveFile() {
         System.out.println("removeFile 99 ("+TESTFILE1+")");
         if (_nc != null)
@@ -138,4 +338,39 @@ public class TestFiles extends ATestClass {
         }
     }
 
+    @Test
+    public void t99_2_testRemoveFile() {
+        System.out.println("removeFile 99 2("+TESTFILE2+")");
+        if (_nc != null)
+        {
+            _nc.removeFile(TESTFILE2);
+        }
+    }
+    
+    @Test
+    public void t99_3_testRemoveFile() {
+        System.out.println("removeFile 99 3("+TESTFILE3+")");
+        if (_nc != null)
+        {
+            _nc.removeFile(TESTFILE3);
+        }
+    }
+    
+    @Test
+    public void t99_4_testRemoveFile() {
+        System.out.println("removeFile 99 4 ("+TESTFILE4+")");
+        if (_nc != null)
+        {
+            _nc.removeFile(TESTFILE4);
+        }
+    }
+
+    @Test
+    public void t99_6_testRemoveFile() {
+        System.out.println("removeFile 99 6 ("+TESTFILE6+")");
+        if (_nc != null)
+        {
+            _nc.removeFile(TESTFILE6);
+        }
+    }
 }

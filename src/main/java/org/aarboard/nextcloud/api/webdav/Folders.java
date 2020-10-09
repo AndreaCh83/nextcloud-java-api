@@ -80,7 +80,7 @@ public class Folders extends AWebdavHandler{
      */
     public List<String> listFolderContent(String remotePath, int depth)
     {
-        return listFolderContent(remotePath, depth, false);
+        return listFolderContent(remotePath, depth, false, false);
     }
 
     /**
@@ -90,9 +90,10 @@ public class Folders extends AWebdavHandler{
      * @param remotePath path of the folder
      * @param depth depth of recursion while listing folder contents
      * @param excludeFolderNames excludes the folder names from the list
+     * @param returnFullPath return full path to files, not only filename
      * @return found file names and subfolders
      */
-    public List<String> listFolderContent(String remotePath, int depth, boolean excludeFolderNames)
+    public List<String> listFolderContent(String remotePath, int depth, boolean excludeFolderNames, boolean returnFullPath)
     {
         String path = buildWebdavPath(remotePath);
 
@@ -119,11 +120,11 @@ public class Folders extends AWebdavHandler{
         {
             if (excludeFolderNames) {
                 if (!res.isDirectory()) {
-                    retVal.add(res.getName());
+                    retVal.add(returnFullPath ? res.getPath().replaceFirst("/remote.php/webdav/", "") : res.getName());
                 }
             }
             else {
-                retVal.add(res.getName());
+                retVal.add(returnFullPath ? res.getPath().replaceFirst("/remote.php/webdav/", "") : res.getName());
             }
         }
         return retVal;
